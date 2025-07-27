@@ -1,23 +1,32 @@
+FROM python:3.12
 
-# Python Based Docker
-FROM python:latest
+# Install system packages and build dependencies
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y git curl ffmpeg aria2 build-essential g++ && \
+    rm -rf /var/lib/apt/lists/*
 
-# Installing Packages
-RUN apt update && apt upgrade -y
-RUN apt install git curl python3-pip ffmpeg aria2 -y
+# Update pip
+RUN pip install -U pip
 
-# Updating Pip Packages
-RUN pip3 install -U pip
+# Clone the repo and install requirements
+RUN echo "Cloning Repo..." && \
+    git clone https://github.com/Wacky007-git/TXT-EXTRACTOR /app && \
+    cd /app && \
+    # Set C++ standard to fix Pandas compilation
+    export CXXFLAGS="-std=c++17" && \
+    pip install -r requirements.txt
 
-# Copying Requirements
-COPY requirements.txt /requirements.txt
+# Set working directory
+WORKDIR /app
 
-# Installing Requirements
-RUN cd /
-RUN pip3 install -U -r requirements.txt
-RUN mkdir /EXTRACTOR
-WORKDIR / EXTRACTOR
-COPY start.sh /start.sh
+# Create a start script (infers from your original Dockerfile; customize as needed)
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'echo "Starting Bot..."' >> /start.sh && \
+    echo 'python -m Extractor' >> /start.sh && \
+    chmod +x /start.sh
 
-# Running MessageSearchBot
-CMD ["/bin/bash", "/start.sh"
+# Expose any ports if needed (e.g., if the bot has a web interface)
+# EXPOSE 8000
+
+# Run the bot
+CMD ["/start.sh"]
